@@ -1,11 +1,11 @@
 {
-    "name": "Longhorn Publishers PLC",
-    "short_name": "Longhorn",
+    "name": "dehus",
+    "short_name": "dehus",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#631D36",
-    "theme_color": "#631D36",
-    "description": "Longhorn Publishers PLC",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
