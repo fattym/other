@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Version Check — dehus</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0ea5e9;
+      --accent-soft: #e0f2fe;
+      --border: #dbeafe;
+      --success: #16a34a;
+      --success-soft: #dcfce7;
+      --warning: #d97706;
+      --warning-soft: #fef3c7;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #e0f2fe 0%, var(--bg) 50%, #f8fafc 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      padding: 2rem;
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(2, 132, 199, 0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .header h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+    }
+
+    .header p {
+      margin: 0;
+      opacity: 0.95;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    }
+
+    .card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.2rem;
+      color: var(--text);
+    }
+
+    .version-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .version-item {
+      padding: 1rem;
+      border-radius: 10px;
+      background: var(--accent-soft);
+    }
+
+    .version-item label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .version-item .value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-badge.up-to-date {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .status-badge.update-available {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .status-badge.checking {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .status-badge.error {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--accent);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .details-table th,
+    .details-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+    }
+
+    .details-table th {
+      background: var(--accent-soft);
+      color: #075985;
+      font-weight: 700;
+    }
+
+    .details-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .header { padding: 1.4rem; }
+      .version-grid { grid-template-columns: 1fr; }
+      .details-table th,
+      .details-table td { font-size: 0.88rem; padding: 0.6rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="header">
+      <h1>Version Check</h1>
+      <p>Compare your installed version with the latest release on GitHub.</p>
+    </section>
+
+    <section class="card">
+      <h2>Current Version</h2>
+      <div class="version-grid">
+        <div class="version-item">
+          <label>App Name</label>
+          <div class="value" id="appName">—</div>
+        </div>
+        <div class="version-item">
+          <label>Installed Version</label>
+          <div class="value" id="currentVersion">—</div>
+        </div>
+        <div class="version-item">
+          <label>Build Number</label>
+          <div class="value" id="buildNumber">—</div>
+        </div>
+        <div class="version-item">
+          <label>Package</label>
+          <div class="value" id="packageName">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Latest Release</h2>
+      <div id="releaseInfo">
+        <span class="status-badge checking"><span class="spinner"></span> Checking...</span>
+      </div>
+      <div id="releaseDetails" style="margin-top: 1rem;"></div>
+    </section>
+
+    <section class="card">
+      <h2>Comparison</h2>
+      <div id="comparisonResult">
+        <span class="status-badge checking"><span class="spinner"></span> Comparing versions...</span>
+      </div>
+      <div class="actions" id="actions" style="display:none;"></div>
+    </section>
+
+    <p class="footer-note">Powered by GitHub Releases API · dehus repository</p>
+  </main>
+
+  <script>
+    const GITHUB_API = 'https://api.github.com/repos/dehus/dehus/releases/latest';
+    const VERSION_JSON = 'version.json';
+
+    async function fetchVersionJson() {
+      const res = await fetch(VERSION_JSON);
+      if (!res.ok) throw new Error('Failed to fetch version.json');
+      return res.json();
+    }
+
+    async function fetchLatestRelease() {
+      const res = await fetch(GITHUB_API, {
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'dehus-web-version-check'
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch latest release');
+      return res.json();
+    }
+
+    function parseVersion(version) {
+      return version.replace(/^v/, '').split('.').map(Number);
+    }
+
+    function compareVersions(a, b) {
+      const partsA = parseVersion(a);
+      const partsB = parseVersion(b);
+      const len = Math.max(partsA.length, partsB.length);
+      for (let i = 0; i < len; i++) {
+        const numA = partsA[i] || 0;
+        const numB = partsB[i] || 0;
+        if (numA > numB) return 1;
+        if (numA < numB) return -1;
+      }
+      return 0;
+    }
+
+    function statusBadge(type, text) {
+      return `<span class="status-badge ${type}">${text}</span>`;
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    async function init() {
+      try {
+        const versionData = await fetchVersionJson();
+        document.getElementById('appName').textContent = versionData.app_name || '—';
+        document.getElementById('currentVersion').textContent = versionData.version || '—';
+        document.getElementById('buildNumber').textContent = versionData.build_number || '—';
+        document.getElementById('packageName').textContent = versionData.package_name || '—';
+
+        const release = await fetchLatestRelease();
+        const latestVersion = release.tag_name || '—';
+        const latestName = release.name || release.tag_name || '—';
+        const publishedAt = release.published_at ? formatDate(release.published_at) : '—';
+        const htmlUrl = release.html_url || '#';
+        const apkUrl = (release.assets || []).find(a => a.name && a.name.toLowerCase().endsWith('.apk'));
+
+        document.getElementById('releaseDetails').innerHTML = `
+          <div class="version-grid">
+            <div class="version-item">
+              <label>Latest Tag</label>
+              <div class="value">${latestVersion}</div>
+            </div>
+            <div class="version-item">
+              <label>Release Name</label>
+              <div class="value" style="font-size:1rem;">${latestName}</div>
+            </div>
+            <div class="version-item">
+              <label>Published</label>
+              <div class="value" style="font-size:1rem;">${publishedAt}</div>
+            </div>
+          </div>
+        `;
+
+        const comparison = compareVersions(latestVersion, versionData.version);
+        const resultEl = document.getElementById('comparisonResult');
+        const actionsEl = document.getElementById('actions');
+
+        if (comparison > 0) {
+          resultEl.innerHTML = statusBadge('update-available', `Update Available — ${latestVersion}`);
+          actionsEl.style.display = 'flex';
+          actionsEl.innerHTML = `
+            <a href="${htmlUrl}" class="btn btn-primary" target="_blank" rel="noopener">View Release on GitHub</a>
+            ${apkUrl ? `<a href="${apkUrl.browser_download_url}" class="btn btn-outline" target="_blank" rel="noopener">Download APK</a>` : ''}
+          `;
+        } else if (comparison === 0) {
+          resultEl.innerHTML = statusBadge('up-to-date', 'You are up to date');
+        } else {
+          resultEl.innerHTML = statusBadge('up-to-date', 'You are on a newer version');
+        }
+      } catch (err) {
+        document.getElementById('releaseInfo').innerHTML = statusBadge('error', 'Failed to check latest release');
+        document.getElementById('comparisonResult').innerHTML = statusBadge('error', err.message);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
